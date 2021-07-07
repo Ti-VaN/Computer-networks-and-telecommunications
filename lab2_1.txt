@@ -1,0 +1,89 @@
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import sounddevice as sd
+import simpleaudio as sa
+import time
+from scipy.fft import fft, ifft, rfft
+
+duration = 1  # длительность сигнала в секундах
+amplitude = 0.3  # амплитуда  (в пределах: +-1.0)
+frequency = 100  # частота сигнала в [Гц]
+# т.к. невозможно программно организовать аналоговый сигнал, необходимо обозначить
+# количество временных отчетов, т.е. частоту дискретизации
+fs = 80000  # 80 тыс. временных отсчетов в 1 секунду
+
+timeSamples = np.arange(np.ceil(duration * fs)) / fs
+timeSamples1 = np.arange(np.ceil(2 * fs)) / fs
+print(len(np.arange(np.ceil(2 * fs))))
+print(np.arange(np.ceil(2 * fs)))
+SIGNALS = np.array(
+    [
+        amplitude * np.sin(2 * np.pi * 361.87 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 35.30 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 261.63 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 180.26 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 93.88 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 162.35 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 280.00 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 55.06 * timeSamples),
+        amplitude * np.sin(2 * np.pi * 12.05 * timeSamples)
+    ], float
+                )
+
+seconds = 3
+s1 = amplitude * np.sin(2 * np.pi * 361.87 * timeSamples1)
+s = []
+for i in range(len(timeSamples)):
+    s.append(amplitude * np.sin(2 * np.pi * 361.87 * timeSamples[i]))
+for i in range(len(timeSamples), len(timeSamples)*2):
+    s.append(amplitude * np.sin(2 * np.pi * 35.30 * timeSamples[i-len(timeSamples)]))
+for i in range(len(timeSamples)*2, len(timeSamples)*3):
+    s.append(amplitude * np.sin(2 * np.pi * 261.63 * timeSamples[i-len(timeSamples)*2]))
+for i in range(len(timeSamples)*3, len(timeSamples)*4):
+    s.append(amplitude * np.sin(2 * np.pi * 180.26 * timeSamples[i-len(timeSamples)*3]))
+for i in range(len(timeSamples)*4, len(timeSamples)*5):
+    s.append(amplitude * np.sin(2 * np.pi * 93.88 * timeSamples[i-len(timeSamples)*4]))
+for i in range(len(timeSamples)*5, len(timeSamples)*6):
+    s.append(amplitude * np.sin(2 * np.pi * 162.35 * timeSamples[i-len(timeSamples)*5]))
+for i in range(len(timeSamples)*6, len(timeSamples)*7):
+    s.append(amplitude * np.sin(2 * np.pi * 280.00 * timeSamples[i-len(timeSamples)*6]))
+for i in range(len(timeSamples)*7, len(timeSamples)*8):
+    s.append(amplitude * np.sin(2 * np.pi * 55.06 * timeSamples[i-len(timeSamples)*7]))
+for i in range(len(timeSamples)*8, len(timeSamples)*9):
+    s.append(amplitude * np.sin(2 * np.pi * 12.05 * timeSamples[i-len(timeSamples)*8]))
+
+sd.play(s, fs)
+time.sleep(9)
+
+
+# попробуем сформировать несколько сигналов с разной частотой и отобразить в виде суммы всех сигналов:
+signalSum = 0
+for i in range(len(SIGNALS)):
+    signalSum = signalSum + SIGNALS[i]
+#sd.play(SIGNALS, fs)
+
+
+plt.plot(timeSamples[:2000] * 1000, signalSum[:2000])
+plt.title("fs = " + str(fs))
+plt.xlabel("time / milliseconds")
+plt.xlim(0, 25)
+plt.show()
+
+fourier = fft(signalSum)
+signalFFTabs = 2*np.abs(fourier) / fs
+plt.title('Спектр сигнала')
+plt.stem(signalFFTabs, basefmt='C0')
+plt.xlim([0, 1000])
+plt.xlabel('частота')
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+fourierBack = ifft(fourier)
+plt.plot(timeSamples[:2000] * 1000, fourierBack[:2000])
+plt.title("Обратное преобразование фурье")
+plt.xlabel("time / milliseconds")
+plt.xlim(0, 25)
+plt.show()
+
